@@ -24,7 +24,7 @@ finish-args:
   - --filesystem=xdg-run/pipewire-0:ro
 add-extensions:
   org.videolan.VLC.Plugin:
-    versions: 3-5.15-25.08;3-25.08
+    versions: 6.11
     directory: share/vlc/extra
     subdirectories: true
     merge-dirs: plugins
