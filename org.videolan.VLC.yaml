@@ -433,9 +433,10 @@ modules:
       - type: patch
         path: gcrypt.diff
   - name: libbluray
+    buildsystem: meson
     config-opts:
-      - --disable-static
-      - --disable-bdjava-jar
+      - -Dbdj_jar=disabled
+      - -Ddefault_library=shared
     sources:
       - type: archive
         url: https://download.videolan.org/videolan/libbluray/1.4.1/libbluray-1.4.1.tar.xz
@@ -443,7 +444,7 @@ modules:
         x-checker-data:
           type: anitya
           project-id: 1565
-          url-template: https://download.videolan.org/videolan/libbluray/$version/libbluray-$version.tar.bz2
+          url-template: https://download.videolan.org/videolan/libbluray/$version/libbluray-$version.tar.xz
   - name: libmtp
     config-opts:
       - --disable-static
