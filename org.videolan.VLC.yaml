@@ -356,8 +356,6 @@ modules:
           type: anitya
           project-id: 7275
           url-template: https://bitbucket.org/multicoreware/x265_git/downloads/x265_$version.tar.gz
-      - type: patch
-        path: x265-Fix-for-CMake-Build-Errors-in-MacOS.patch
   - name: dav1d
     buildsystem: meson
     sources:
