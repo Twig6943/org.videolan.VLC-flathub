@@ -1,12 +1,13 @@
 app-id: org.videolan.VLC
 runtime: org.kde.Platform
-runtime-version: 5.15-25.08
+runtime-version: '6.11'
 sdk: org.kde.Sdk
 command: vlc
 finish-args:
   - --require-version=0.11.4
   - --share=ipc
-  - --socket=x11
+  - --socket=wayland
+  - --socket=fallback-x11
   - --socket=pulseaudio
   - --share=network
   - --filesystem=host
@@ -20,6 +21,7 @@ finish-args:
   - --own-name=org.mpris.MediaPlayer2.vlc
   - --device=all
   - --filesystem=xdg-run/gvfs
+  - --filesystem=xdg-run/pipewire-0:ro
 add-extensions:
   org.videolan.VLC.Plugin:
     versions: 3-5.15-25.08;3-25.08
@@ -44,7 +46,7 @@ cleanup-commands:
   - mkdir -p /app/share/vlc/extra
   - ln -s /app/share/vlc/extra/plugins /app/lib/vlc/plugins/extra
   - rm -f /app/lib/vlc/plugins/plugins.dat
-  - /app/lib/vlc/vlc-cache-gen /app/lib/vlc/plugins
+  - /app/libexec/vlc/vlc-cache-gen /app/lib/vlc/plugins
 build-options:
   env:
     V: '1'
@@ -150,8 +152,6 @@ modules:
       - -DCMAKE_BUILD_TYPE=RelWithDebInfo
       - -DBUILD_SHARED_LIBS=ON
       - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-      - -DWITH_MP4=ON
-      - -DWITH_ASF=ON
       - -DCMAKE_POLICY_VERSION_MINIMUM=3.5
     sources:
       - type: archive
@@ -356,6 +356,8 @@ modules:
           type: anitya
           project-id: 7275
           url-template: https://bitbucket.org/multicoreware/x265_git/downloads/x265_$version.tar.gz
+      - type: patch
+        path: x265-Fix-for-CMake-Build-Errors-in-MacOS.patch
   - name: dav1d
     buildsystem: meson
     sources:
@@ -433,11 +435,9 @@ modules:
       - type: patch
         path: gcrypt.diff
   - name: libbluray
-    buildsystem: meson
     config-opts:
-      - -Dfontconfig=enabled
-      - -Dfreetype=enabled
-      - -Dlibxml2=enabled
+      - --disable-static
+      - --disable-bdjava-jar
     sources:
       - type: archive
         url: https://download.videolan.org/videolan/libbluray/1.4.1/libbluray-1.4.1.tar.xz
@@ -571,18 +571,27 @@ modules:
           type: anitya
           project-id: 275561
           url-template: https://github.com/videolabs/libmicrodns/releases/download/$version/microdns-$version.tar.xz
-  - name: spatialaudio
+  - name: libmysofa
+    buildsystem: cmake
     builddir: true
-    buildsystem: cmake-ninja
     config-opts:
       - -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      - -DBUILD_TESTS=OFF
       - -DBUILD_SHARED_LIBS=ON
-      - -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-      - -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+      - -DBUILD_STATIC_LIBS=OFF
+      - -DCODE_COVERAGE=OFF
     sources:
       - type: archive
-        url: https://github.com/videolabs/libspatialaudio/releases/download/0.3.0/spatialaudio-0.3.0.tar.bz2
-        sha256: 284c1dbd8efd46c03be84ac7070bc87cae81b7125352b143a70be3e2b96988e3
+        url: https://github.com/hoene/libmysofa/archive/refs/tags/v1.3.4.zip
+        sha256: 65738c053aa425ca6ca4669ab9b0806e978f7e4abc69ca8c52a123e538233522
+  - name: spatialaudio
+    buildsystem: meson
+    config-opts:
+      - -Dbuildtype=debug
+    sources:
+      - type: archive
+        url: https://github.com/videolan/libspatialaudio/releases/download/0.4.1/libspatialaudio-0.4.1.tar.xz
+        sha256: 215980432e3980d7733caa7d5051887f0d604cb8a265adf1311087c0fe7d3892
   - name: srt
     builddir: true
     buildsystem: cmake-ninja
@@ -634,7 +643,10 @@ modules:
     cleanup:
       - /bin
   - name: vlc
-    rm-configure: true
+    build-options:
+      env:
+        QMAKE6: /usr/bin/qmake
+        PATH: /app/bin:/usr/bin:/bin:/usr/sbin:/sbin
     config-opts:
       - BUILDCC=/usr/bin/gcc -std=gnu99
       - --disable-a52
@@ -652,25 +664,13 @@ modules:
       - tar xf chrpath-0.16.tar.gz && cd chrpath-0.16 && ./configure && make
       - ./chrpath-0.16/chrpath -d /app/lib/vlc/plugins/access/liblibbluray_plugin.so
     sources:
-      - type: archive
-        url: https://download.videolan.org/videolan/vlc/3.0.23/vlc-3.0.23.tar.xz
-        sha256: e891cae6aa3ccda69bf94173d5105cbc55c7a7d9b1d21b9b21666e69eff3e7e0
-        x-checker-data:
-          type: anitya
-          project-id: 6504
-          versions:
-            '>=': '3'
-            <: '4'
-          url-template: https://download.videolan.org/videolan/vlc/$version/vlc-$version.tar.xz
+      - type: git
+        url: https://github.com/videolan/vlc.git
+        commit: 35f4ec31b217f659f618c70020244e636c41e4e6
       - type: patch
-        path: vlc-fix-appdata.patch
-      - type: patch
-        path: vlc-disc-shortcuts.patch
-      - type: patch
-        path: vlc-ignore-time-for-cache.patch
-      - type: file
-        path: vlc.sh
+        path: vlc-static-dirs-moc-includes.patch
       - type: file
         url: https://src.fedoraproject.org/lookaside/extras/chrpath/chrpath-0.16.tar.gz/2bf8d1d1ee345fc8a7915576f5649982/chrpath-0.16.tar.gz
         sha256: bb0d4c54bac2990e1bdf8132f2c9477ae752859d523e141e72b3b11a12c26e7b
-
+      - type: file
+        path: vlc.sh
