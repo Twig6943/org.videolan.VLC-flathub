@@ -435,6 +435,9 @@ modules:
   - name: libbluray
     buildsystem: meson
     config-opts:
+      - -Dfontconfig=enabled
+      - -Dfreetype=enabled
+      - -Dlibxml2=enabled
       - -Dbdj_jar=disabled
       - -Ddefault_library=shared
     sources:
@@ -665,7 +668,11 @@ modules:
     sources:
       - type: git
         url: https://github.com/videolan/vlc.git
-        commit: 35f4ec31b217f659f618c70020244e636c41e4e6
+        commit: b0475ab0f7d791230246b161172b83b6c2920ead
+      - type: patch
+        path: vlc-ignore-time-for-cache.patch
+      - type: patch
+        path: vlc-fix-appdata.patch
       - type: patch
         path: vlc-static-dirs-moc-includes.patch
       - type: file
