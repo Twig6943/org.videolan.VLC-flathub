@@ -438,8 +438,6 @@ modules:
       - -Dfontconfig=enabled
       - -Dfreetype=enabled
       - -Dlibxml2=enabled
-      - -Dbdj_jar=disabled
-      - -Ddefault_library=shared
     sources:
       - type: archive
         url: https://download.videolan.org/videolan/libbluray/1.4.1/libbluray-1.4.1.tar.xz
@@ -574,7 +572,7 @@ modules:
           project-id: 275561
           url-template: https://github.com/videolabs/libmicrodns/releases/download/$version/microdns-$version.tar.xz
   - name: libmysofa
-    buildsystem: cmake
+    buildsystem: cmake-ninja
     builddir: true
     config-opts:
       - -DCMAKE_BUILD_TYPE=RelWithDebInfo
@@ -589,7 +587,7 @@ modules:
   - name: spatialaudio
     buildsystem: meson
     config-opts:
-      - -Dbuildtype=debug
+      - -Dbuildtype=release
     sources:
       - type: archive
         url: https://github.com/videolan/libspatialaudio/releases/download/0.4.1/libspatialaudio-0.4.1.tar.xz
